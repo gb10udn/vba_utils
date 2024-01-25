@@ -1,0 +1,8 @@
+.venv/
+dist/
+build/
+
+*.exe
+*.spec
+*.code-workspace
+*.xlsm
