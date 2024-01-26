@@ -1,10 +1,9 @@
-Attribute VB_Name = "Module1"
+Attribute VB_Name = "Command"
 Option Explicit
 
-' HACK: 240125 vba の出力を自動実行する。
 ' HACK: 240125 複数ある場合、utils.bas などにまとめる。
 
-Public Function RunSyncCommandAndCatchStdout(ByVal command As String, Optional ByVal isHidden As Boolean = False) As String
+Public Function RunSyncCommandAndCatchStdout(ByVal Command As String, Optional ByVal isHidden As Boolean = False) As String
   '
   ' 同期的にコマンドを実行し、その標準出力を受け取る関数。
   ' (外部ファイル (Ex. exe, cmd, bat etc...) の実行等を想定。)
@@ -28,8 +27,8 @@ Public Function RunSyncCommandAndCatchStdout(ByVal command As String, Optional B
   Dim result As String
   
   Set wshShell = VBA.CreateObject("WScript.Shell")
-  wshShell.currentDirectory = ThisWorkbook.Path  ' FIXME: 240125 OneDrive 上で動かない懸念有り。
-  Set wshShellExec = wshShell.Exec(command)      ' INFO: 240125 .Exec() は標準出力を受け取り可能。(https://www.bugbugnow.net/2018/06/wshrunexec.html)
+  wshShell.CurrentDirectory = ThisWorkbook.Path  ' FIXME: 240125 OneDrive 上で動かない懸念有り。
+  Set wshShellExec = wshShell.Exec(Command)      ' INFO: 240125 .Exec() は標準出力を受け取り可能。(https://www.bugbugnow.net/2018/06/wshrunexec.html)
   Set wshShellStdout = wshShellExec.stdout
   
   ' [START] run and catch stdout
@@ -56,5 +55,8 @@ Private Sub TEST___RunExeAndObtainStdout()
   '
   Dim result As String
   result = RunSyncCommandAndCatchStdout("python .\py\run_print.py", True)
+  Debug.Print result
+  
+  result = RunSyncCommandAndCatchStdout("ipconfig", True)
   Debug.Print result
 End Sub

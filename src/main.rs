@@ -1,6 +1,6 @@
-use calamine::{Reader, open_workbook, Xlsx, DataType};
+use calamine::{Reader, open_workbook, Xlsx};
 use std::fs::File;
-use std::io::{self, Read, Write, BufReader};
+use std::io::{Write};
 
 fn main() {
     let path = "./vba_utils.xlsm";
@@ -12,7 +12,7 @@ fn main() {
 
         for module_name in module_names {
             let vba_code = vba.get_module(module_name).unwrap();  // FIXME: 240127 エラーハンドリングを修正せよ。
-            write_text(&vba_code, &format!("{}.bas", module_name)).unwrap();
+            write_text(&vba_code, &format!("{}.bas", module_name)).unwrap();  // TODO: 240127 utils.bas にまとめる、minify する機能を追加する。
         }
     }
 }
