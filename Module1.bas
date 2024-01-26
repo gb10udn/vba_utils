@@ -1,26 +1,26 @@
 Attribute VB_Name = "Module1"
 Option Explicit
 
-' HACK: 240125 vba ‚Ìo—Í‚ğ©“®Às‚·‚éB
-' HACK: 240125 •¡”‚ ‚éê‡Autils.bas ‚È‚Ç‚É‚Ü‚Æ‚ß‚éB
+' HACK: 240125 vba ã®å‡ºåŠ›ã‚’è‡ªå‹•å®Ÿè¡Œã™ã‚‹ã€‚
+' HACK: 240125 è¤‡æ•°ã‚ã‚‹å ´åˆã€utils.bas ãªã©ã«ã¾ã¨ã‚ã‚‹ã€‚
 
 Public Function RunSyncCommandAndCatchStdout(ByVal command As String, Optional ByVal isHidden As Boolean = False) As String
   '
-  ' “¯Šú“I‚ÉƒRƒ}ƒ“ƒh‚ğÀs‚µA‚»‚Ì•W€o—Í‚ğó‚¯æ‚éŠÖ”B
-  ' (ŠO•”ƒtƒ@ƒCƒ‹ (Ex. exe, cmd, bat etc...) ‚ÌÀs“™‚ğ‘z’èB)
+  ' åŒæœŸçš„ã«ã‚³ãƒãƒ³ãƒ‰ã‚’å®Ÿè¡Œã—ã€ãã®æ¨™æº–å‡ºåŠ›ã‚’å—ã‘å–ã‚‹é–¢æ•°ã€‚
+  ' (å¤–éƒ¨ãƒ•ã‚¡ã‚¤ãƒ« (Ex. exe, cmd, bat etc...) ã®å®Ÿè¡Œç­‰ã‚’æƒ³å®šã€‚)
   '
   ' Parameters
   ' ----------
   ' command : String
-  '   Às‚·‚éƒRƒ}ƒ“ƒhB
+  '   å®Ÿè¡Œã™ã‚‹ã‚³ãƒãƒ³ãƒ‰ã€‚
   '
   ' isHidden : Boolean (default : False)
-  '   ƒRƒ}ƒ“ƒhƒEƒBƒ“ƒhƒE‚ğŠJ‚­‚©‚Ç‚¤‚©B  ' TODO: 240125 ‹@”\’Ç‰Á‚·‚é (­‚µ–Ê“|‚»‚¤‚¾‚Á‚½B)
+  '   ã‚³ãƒãƒ³ãƒ‰ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‹ãã‹ã©ã†ã‹ã€‚  ' TODO: 240125 æ©Ÿèƒ½è¿½åŠ ã™ã‚‹ (å°‘ã—é¢å€’ãã†ã ã£ãŸã€‚)
   '
   ' Return
   ' ------
   ' result : String
-  '   æ“¾‚µ‚½•W€o—ÍB
+  '   å–å¾—ã—ãŸæ¨™æº–å‡ºåŠ›ã€‚
   '
   Dim wshShell As Object
   Dim wshShellExec As Object
@@ -28,13 +28,13 @@ Public Function RunSyncCommandAndCatchStdout(ByVal command As String, Optional B
   Dim result As String
   
   Set wshShell = VBA.CreateObject("WScript.Shell")
-  wshShell.currentDirectory = ThisWorkbook.Path  ' FIXME: 240125 OneDrive ã‚Å“®‚©‚È‚¢Œœ”O—L‚èB
-  Set wshShellExec = wshShell.Exec(command)      ' INFO: 240125 .Exec() ‚Í•W€o—Í‚ğó‚¯æ‚è‰Â”\B(https://www.bugbugnow.net/2018/06/wshrunexec.html)
+  wshShell.currentDirectory = ThisWorkbook.Path  ' FIXME: 240125 OneDrive ä¸Šã§å‹•ã‹ãªã„æ‡¸å¿µæœ‰ã‚Šã€‚
+  Set wshShellExec = wshShell.Exec(command)      ' INFO: 240125 .Exec() ã¯æ¨™æº–å‡ºåŠ›ã‚’å—ã‘å–ã‚Šå¯èƒ½ã€‚(https://www.bugbugnow.net/2018/06/wshrunexec.html)
   Set wshShellStdout = wshShellExec.stdout
   
   ' [START] run and catch stdout
   result = wshShellStdout.ReadAll
-  Do While wshShellExec.Status = 0  ' HACK: 240125 ƒGƒ‰[‚Ì‘Î‰‚ğ‘‚­B
+  Do While wshShellExec.Status = 0  ' HACK: 240125 ã‚¨ãƒ©ãƒ¼æ™‚ã®å¯¾å¿œã‚’æ›¸ãã€‚
     VBA.DoEvents
   Loop
   ' [END] run and catch stdout
@@ -51,10 +51,10 @@ End Function
 
 
 Private Sub TEST___RunExeAndObtainStdout()
- '
- ' python ‚ÌÀs‚Å‚«‚é windows ‚Å‚ ‚é‚±‚Æ‚ğ‘O’ñ‚Æ‚·‚éB
- '
- Dim result As String
- result = RunSyncCommandAndCatchStdout("python .\py\run_print.py", True)
- Debug.Print result
+  '
+  ' python ã®å®Ÿè¡Œã§ãã‚‹ windows ã§ã‚ã‚‹ã“ã¨ã‚’å‰æã¨ã™ã‚‹ã€‚
+  '
+  Dim result As String
+  result = RunSyncCommandAndCatchStdout("python .\py\run_print.py", True)
+  Debug.Print result
 End Sub

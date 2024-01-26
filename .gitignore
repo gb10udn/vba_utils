@@ -8,3 +8,6 @@ build/
 *.spec
 *.code-workspace
 *.xlsm
+
+Sheet1.bas
+ThisWorkbook.bas
