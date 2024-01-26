@@ -1,6 +1,7 @@
 use calamine::{Reader, open_workbook, Xlsx};
 use std::fs::File;
 use std::io::{Write};
+use std::io;
 
 fn main() {
     let path = "./vba_utils.xlsm";
@@ -15,10 +16,17 @@ fn main() {
             write_text(&vba_code, &format!("{}.bas", module_name)).unwrap();  // TODO: 240127 utils.bas にまとめる、minify する機能を追加する。
         }
     }
+    stop();
 }
 
 fn write_text(text: &str, dst: &str) -> Result<(), Box<dyn std::error::Error>> {  // FIXME: 240127 エラーハンドリングを修正せよ。
     let mut file = File::create(dst)?;
     write!(file, "{}", text)?;
     Ok(())
+}
+
+fn stop() {
+    println!("finished !!! Please input enter key");
+    let mut a = String::new();
+    let _  = io::stdin().read_line(&mut a).expect("");
 }

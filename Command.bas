@@ -3,7 +3,7 @@ Option Explicit
 
 ' HACK: 240125 複数ある場合、utils.bas などにまとめる。
 
-Public Function RunSyncCommandAndCatchStdout(ByVal Command As String, Optional ByVal isHidden As Boolean = False) As String
+Public Function RunSyncCommandAndCatchStdout(ByVal Command As String) As String  ' TODO: 240127 timeout / isHidden を実装する。
   '
   ' 同期的にコマンドを実行し、その標準出力を受け取る関数。
   ' (外部ファイル (Ex. exe, cmd, bat etc...) の実行等を想定。)
@@ -12,9 +12,6 @@ Public Function RunSyncCommandAndCatchStdout(ByVal Command As String, Optional B
   ' ----------
   ' command : String
   '   実行するコマンド。
-  '
-  ' isHidden : Boolean (default : False)
-  '   コマンドウィンドウを開くかどうか。  ' TODO: 240125 機能追加する (少し面倒そうだった。)
   '
   ' Return
   ' ------
@@ -54,9 +51,9 @@ Private Sub TEST___RunExeAndObtainStdout()
   ' python の実行できる windows であることを前提とする。
   '
   Dim result As String
-  result = RunSyncCommandAndCatchStdout("python .\py\run_print.py", True)
+  result = RunSyncCommandAndCatchStdout("python .\py\run_print.py")
   Debug.Print result
   
-  result = RunSyncCommandAndCatchStdout("ipconfig", True)
+  result = RunSyncCommandAndCatchStdout("ipconfig")
   Debug.Print result
 End Sub
