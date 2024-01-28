@@ -43,7 +43,7 @@ fn write_summary_code(path: &str, module_name: &str) {
                 // TODO: 240128 モジュール名を関数名の先頭につける
                 // TODO: 240128 docstring 以外のコメントをすべて削除する？
                 if one_line.starts_with("Option Explicit") == false && one_line.starts_with("Attribute ") == false {
-                    summary_vba_code.push_str(one_line);
+                    summary_vba_code.push_str(&format!("{}\n", one_line));
                 }
             }
         }
