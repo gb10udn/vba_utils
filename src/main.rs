@@ -24,15 +24,15 @@ fn write_each_code(path: &str) {  // TODO: 240128 エクセルファイル名で
     }
 }
 
-/// 複数のモジュールを結合して、１つの .bas として保存する。
-fn write_summary_code(path: &str, module_name: &str, remove_test_code: bool, add_module_name: bool) {  // FIXME: 240128 Utils.bas の名称が衝突する場合のエラー処理を書くこと。 (panic! で強制的にストップさせてよいかも？)
+/// 複数のモジュールを結合して、１つの .bas として保存する関数。
+fn write_summary_code(path: &str, dst_module_name: &str, remove_test_code: bool, with_module_name: bool) {  // FIXME: 240128 Utils.bas の名称が衝突する場合のエラー処理を書くこと。 (panic! で強制的にストップさせてよいかも？)
     let mut workbook: Xlsx<_> = open_workbook(path).expect("Cannot open file");
     
     if let Some(Ok(mut vba)) = workbook.vba_project() {
         let vba = vba.to_mut();
         let module_names = vba.get_module_names();
         
-        let header = format!("Attribute VB_Name = \"{}\"\nOption Explicit\n", module_name);
+        let header = format!("Attribute VB_Name = \"{}\"\nOption Explicit\n", dst_module_name);
         let mut summary_vba_code = String::from(&header);
         
         let re_test_block_start = Regex::new(r"Function TEST_|Sub TEST_").unwrap();
@@ -48,19 +48,11 @@ fn write_summary_code(path: &str, module_name: &str, remove_test_code: bool, add
                 }
                 
                 if (is_test_block == false) && (one_line.starts_with("Option Explicit") == false) && (one_line.starts_with("Attribute ") == false) {
-                    let editted_one_line;
-                    
-                    if add_module_name == true && one_line.contains("Function") == true && one_line.contains("End") == false {  // FIXME: 240128 not DRY
-                        let word_vec: Vec<&str> = one_line.split("Function").collect();
-                        editted_one_line = format!("{}Function {}_{}", word_vec[0], module_name, word_vec[1].trim());
-                    } else if add_module_name == true && one_line.contains("Sub") == true && one_line.contains("End") == false {
-                        let word_vec: Vec<&str> = one_line.split("Sub").collect();
-                        editted_one_line = format!("{}Sub {}_{}", word_vec[0], module_name, word_vec[1].trim());
+                    if with_module_name {
+                        summary_vba_code.push_str(&format!("{}\n", add_module_name(one_line, module_name)));
                     } else {
-                        editted_one_line = String::from(one_line);  // FIXME: 240128 editted と言いながら、そのまま使っているのが微妙かも。    
+                        summary_vba_code.push_str(&format!("{}\n", one_line));
                     }
-
-                    summary_vba_code.push_str(&format!("{}\n", editted_one_line));
                 }
 
                 if (remove_test_code == true) && (is_test_block == true) && (re_test_block_end.is_match(one_line) == true) {
@@ -68,7 +60,7 @@ fn write_summary_code(path: &str, module_name: &str, remove_test_code: bool, add
                 }
             }
         }
-        write_text(&summary_vba_code, "utils.bas").unwrap();
+        write_text(&summary_vba_code, &format!("{}.bas", dst_module_name)).unwrap();
     }
 }
 
@@ -76,6 +68,18 @@ fn write_text(text: &str, dst: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut file = File::create(dst)?;
     write!(file, "{}", text)?;
     Ok(())
+}
+
+/// Sub or Function の名前の先頭にモジュール名を付与する関数
+/// Ex. Sub Hoge() --> Sub Module_Hoge() (Hoge というサブプロシージャの先頭に、モジュール名の Module を追加して返した。)
+fn add_module_name(arg: &str, module_name: &str) -> String {
+    for target_reserved_word in vec!["Sub", "Function"] {
+        if arg.contains(target_reserved_word) == true && arg.contains("End") == false {
+            let word_vec: Vec<&str> = arg.split(target_reserved_word).collect();
+            return format!("{}{} {}_{}", word_vec[0], target_reserved_word, module_name, word_vec[1].trim());
+        }
+    }
+    return String::from(arg);
 }
 
 fn stop() {
