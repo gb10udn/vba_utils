@@ -1,8 +1,8 @@
-Attribute VB_Name = "utils"
+Attribute VB_Name = "Utils"
 Option Explicit
 
 
-Public Function RunSyncCommandAndCatchStdout(ByVal cmd As String) As String  ' TODO: 240127 timeout / isHidden を実装する。
+Public Function Command_RunSyncCommandAndCatchStdout(ByVal cmd As String) As String  ' TODO: 240127 timeout / isHidden を実装する。
   '
   ' 同期的にコマンドを実行し、その標準出力を受け取る関数。
   ' (外部ファイル (Ex. exe, cmd, bat etc...) の実行等を想定。)
@@ -47,7 +47,7 @@ End Function
 
 
 
-Public Function ChangeExtension(ByVal FilePath As String, ByVal newExtension As String) As String
+Public Function FilePath_ChangeExtension(ByVal FilePath As String, ByVal newExtension As String) As String
   '
   ' 拡張子を変更する関数。例えば、.csv --> .dat で使用する。
   ' 引数の、newExtension は、ピリオドから入力する。(Ex. ".dat")
@@ -76,7 +76,7 @@ End Function
 
 
 
-Public Function ObtainAbsPath(ByVal arg) As String
+Public Function FilePath_ObtainAbsPath(ByVal arg) As String
   '
   ' 絶対パスに変換して返す。なお、絶対パスを渡すとそのまま返す。(os.path.abspath)
   '
@@ -94,7 +94,7 @@ End Function
 
 
 
-Public Function ObtainFileName(ByVal arg As String) As String
+Public Function FilePath_ObtainFileName(ByVal arg As String) As String
   '
   ' ファイルパスの内、ファイル名 (拡張子を含む) を返す関数。(os.path.basename)
   '
