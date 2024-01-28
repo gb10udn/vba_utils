@@ -1,7 +1,6 @@
 use calamine::{Reader, open_workbook, Xlsx};
-use std::fs::File;
-use std::io::Write;
-use std::io;
+use std::{fs::File, io::Write, io};
+use regex::Regex;
 
 fn main() {
     let path = "./vba_utils.xlsm";
@@ -35,15 +34,24 @@ fn write_summary_code(path: &str, module_name: &str) {
         
         let header = format!("Attribute VB_Name = \"{}\"\nOption Explicit\n", module_name);
         let mut summary_vba_code = String::from(&header);
-
+        let re_test_start = Regex::new(r"Function TEST_|Sub TEST_").unwrap();
+        let re_test_end = Regex::new(r"End Function|End Sub").unwrap();
         for module_name in module_names {
             let vba_code = vba.get_module(module_name).unwrap();
+            let mut is_test_block = false;
             for one_line in vba_code.split("\n") {
-                // TODO: 240128 テストコードの関数を書き出さないようにする。
                 // TODO: 240128 モジュール名を関数名の先頭につける
                 // TODO: 240128 docstring 以外のコメントをすべて削除する？
-                if one_line.starts_with("Option Explicit") == false && one_line.starts_with("Attribute ") == false {
+                if (is_test_block == false) && (re_test_start.is_match(one_line) == true) {
+                    is_test_block = true;
+                }
+
+                if (is_test_block == false) && (one_line.starts_with("Option Explicit") == false) && (one_line.starts_with("Attribute ") == false) {
                     summary_vba_code.push_str(&format!("{}\n", one_line));
+                }
+
+                if (is_test_block == true) && (re_test_end.is_match(one_line) == true) {
+                    is_test_block = false;
                 }
             }
         }

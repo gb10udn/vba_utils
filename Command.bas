@@ -1,6 +1,7 @@
 Attribute VB_Name = "Command"
 Option Explicit
 
+
 Public Function RunSyncCommandAndCatchStdout(ByVal cmd As String) As String  ' TODO: 240127 timeout / isHidden を実装する。
   '
   ' 同期的にコマンドを実行し、その標準出力を受け取る関数。
