@@ -47,6 +47,32 @@ End Function
 
 
 
+Public Sub Command_RunAsyncCommandAndCatchStdout(ByVal cmd As String, Optional ByVal isHidden As Boolean = True)
+  '
+  ' 非同期的にコマンドを実行する関数。(標準出力を受け取らない。)
+  ' (外部ファイル (Ex. exe, cmd, bat etc...) の実行等を想定。)
+  '
+  ' Parameters
+  ' ----------
+  ' cmd : String
+  '   実行するコマンド。
+  '
+  Dim wshShell As Object
+
+  Set wshShell = CreateObject("WScript.Shell")
+  wshShell.CurrentDirectory = ThisWorkbook.Path  ' FIXME: 240128 OneDrive 上で動かない懸念有り。
+  
+  If isHidden Then
+    wshShell.Run cmd, vbHide, False   ' INFO: 第三引数 --> 同期する (True) or しない (False)。非同期処理のプロシージャなので、False とした。
+  Else
+    wshShell.Run cmd, vbNormalFocus, False
+  End If
+  Set wshShell = Nothing
+End Sub
+
+
+
+
 Public Function FilePath_ChangeExtension(ByVal FilePath As String, ByVal newExtension As String) As String
   '
   ' 拡張子を変更する関数。例えば、.csv --> .dat で使用する。
