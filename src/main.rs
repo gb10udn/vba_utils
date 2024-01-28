@@ -73,7 +73,7 @@ fn write_text(text: &str, dst: &str) -> Result<(), Box<dyn std::error::Error>> {
 /// Sub or Function の名前の先頭にモジュール名を付与する関数
 /// Ex. Sub Hoge() --> Sub Module_Hoge() (Hoge というサブプロシージャの先頭に、モジュール名の Module を追加して返した。)
 fn add_module_name(arg: &str, module_name: &str) -> String {
-    for target_reserved_word in vec!["Sub", "Function"] {
+    for target_reserved_word in vec!["Public Sub", "Public Function"] {
         if arg.contains(target_reserved_word) == true && arg.contains("End") == false {
             let word_vec: Vec<&str> = arg.split(target_reserved_word).collect();
             return format!("{}{} {}_{}", word_vec[0], target_reserved_word, module_name, word_vec[1].trim());

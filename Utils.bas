@@ -110,7 +110,7 @@ Public Function FilePath_ObtainAbsPath(ByVal arg) As String
   Set fso = CreateObject("Scripting.FileSystemObject")
     
   With CreateObject("WScript.Shell")
-    .CurrentDirectory = ThisWorkbook.Path  ' INFO: 231108 ファイル共有 (\\sv1401) 用。(ChDrive, ChDir では不可)
+    .CurrentDirectory = ThisWorkbook.Path  ' INFO: 231108 ファイル共有用。(ChDrive, ChDir では不可)
   End With
   
   ObtainAbsPath = fso.GetAbsolutePathName(arg)
