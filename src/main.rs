@@ -5,7 +5,7 @@ use regex::Regex;
 fn main() {
     let path = "./vba_utils.xlsm";
     write_each_code(path);
-    write_summary_code(path, "utils");
+    write_summary_code(path, "utils", true);
     stop();
 }
 
@@ -25,7 +25,7 @@ fn write_each_code(path: &str) {
 }
 
 /// 複数のモジュールを結合して、１つの .bas として保存する。
-fn write_summary_code(path: &str, module_name: &str) {
+fn write_summary_code(path: &str, module_name: &str, remove_test_code: bool) {  // FIXME: 240128 utils.bas の名称が衝突する場合のエラー処理を書くこと。 
     let mut workbook: Xlsx<_> = open_workbook(path).expect("Cannot open file");
     
     if let Some(Ok(mut vba)) = workbook.vba_project() {
@@ -40,17 +40,17 @@ fn write_summary_code(path: &str, module_name: &str) {
             let vba_code = vba.get_module(module_name).unwrap();
             let mut is_test_block = false;
             for one_line in vba_code.split("\n") {
-                // TODO: 240128 モジュール名を関数名の先頭につける
                 // TODO: 240128 docstring 以外のコメントをすべて削除する？
-                if (is_test_block == false) && (re_test_start.is_match(one_line) == true) {
+                if (remove_test_code == true) && (is_test_block == false) && (re_test_start.is_match(one_line) == true) {
                     is_test_block = true;
                 }
-
+                
                 if (is_test_block == false) && (one_line.starts_with("Option Explicit") == false) && (one_line.starts_with("Attribute ") == false) {
+                    // TODO: 240128 モジュール名を関数名の先頭につける。Command_XXXX のような関数名にする。
                     summary_vba_code.push_str(&format!("{}\n", one_line));
                 }
 
-                if (is_test_block == true) && (re_test_end.is_match(one_line) == true) {
+                if (remove_test_code == true) && (is_test_block == true) && (re_test_end.is_match(one_line) == true) {
                     is_test_block = false;
                 }
             }
