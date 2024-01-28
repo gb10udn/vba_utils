@@ -86,7 +86,7 @@ Private Sub TEST___ObtainAbsPath()
   Debug.Print ObtainAbsPath(testPath)
   
   ' INFO: 231108 ファイル共有箇所
-  testPath = "\\sv1401\Sen共有\RPA用（カンバン）\SAP対応\dev_imis"
+  testPath = "\\ShareServer\dev"
   Debug.Print ObtainAbsPath(testPath)
 End Sub
 

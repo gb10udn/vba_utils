@@ -1,16 +1,14 @@
 Attribute VB_Name = "Command"
 Option Explicit
 
-' HACK: 240125 複数ある場合、utils.bas などにまとめる。
-
-Public Function RunSyncCommandAndCatchStdout(ByVal Command As String) As String  ' TODO: 240127 timeout / isHidden を実装する。
+Public Function RunSyncCommandAndCatchStdout(ByVal cmd As String) As String  ' TODO: 240127 timeout / isHidden を実装する。
   '
   ' 同期的にコマンドを実行し、その標準出力を受け取る関数。
   ' (外部ファイル (Ex. exe, cmd, bat etc...) の実行等を想定。)
   '
   ' Parameters
   ' ----------
-  ' command : String
+  ' cmd : String
   '   実行するコマンド。
   '
   ' Return
@@ -25,7 +23,7 @@ Public Function RunSyncCommandAndCatchStdout(ByVal Command As String) As String 
   
   Set wshShell = VBA.CreateObject("WScript.Shell")
   wshShell.CurrentDirectory = ThisWorkbook.Path  ' FIXME: 240125 OneDrive 上で動かない懸念有り。
-  Set wshShellExec = wshShell.Exec(Command)      ' INFO: 240125 .Exec() は標準出力を受け取り可能。(https://www.bugbugnow.net/2018/06/wshrunexec.html)
+  Set wshShellExec = wshShell.Exec(cmd)          ' INFO: 240125 .Exec() は標準出力を受け取り可能。(https://www.bugbugnow.net/2018/06/wshrunexec.html)
   Set wshShellStdout = wshShellExec.stdout
   
   ' [START] run and catch stdout
