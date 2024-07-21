@@ -1,27 +1,57 @@
 Attribute VB_Name = "Network"
 Option Explicit
 
-Public Sub SendPost()  ' # TODO: 240721 名前をもっと一般的にして、vba utils に加えること。
-  Dim http As Object
+
+Public Function SendPost(ByVal port As Long, Optional ByVal postData As String = "{}") As Object
+  '
+  ' Ex. postData = "{""a"": 1, ""b"": 2}" のように、ダブルクォーテーションが２ついる点に注意せよ。
+  '
   Dim url As String
-  Dim inputData As String
-  Dim result As String
-
-  ' MSXML2.XMLHTTPオブジェクトを作成
-  Set http = CreateObject("MSXML2.XMLHTTP")
-  url = "http://localhost:8000"  ' # TODO: 240721 8000 ポートがない場合のエラーハンドリング。(Msgbox で表示させること。)
-  inputData = "{""a"": 3, ""b"": 5}"
-
-  ' HTTP POSTリクエストを送信
-  http.Open "POST", url, False
-  http.setRequestHeader "Content-Type", "application/json"
-  http.send inputData
-
-  ' レスポンスを取得
-  result = http.responseText  ' # TODO: 240721 辞書型 or 配列での取得を検討せよ。
-  MsgBox result
+  Dim xmlhttp As Object
+  Dim response As Variant
   
-  Set http = Nothing
+  Set xmlhttp = CreateObject("MSXML2.XMLHTTP")
+  url = "http://127.0.0.1:" & port & "/"
+  xmlhttp.Open "POST", url, False
+  xmlhttp.setRequestHeader "Content-Type", "application/json"
+  xmlhttp.send postData
+
+  response = xmlhttp.responseText
+  Set SendPost = JsonConverter.ParseJson(response)
+  Set xmlhttp = Nothing
+End Function
+
+
+Public Function WriteResponse(ByRef response As Object)
+  '
+  ' 受け取ったレスポンスから、エクセルシートに値を書き込む。
+  '
+  Dim res As Variant
+  For Each res In response
+    If res("sheet_name") = "" Then
+      Cells(res("x"), res("y")).value = res("value")
+    Else
+      ThisWorkbook.Sheets(res("sheet_name")).Cells(res("x"), res("y")).value = res("value")
+    End If
+  Next res
+  Set response = Nothing
+End Function
+
+
+Private Sub TEST___SendPost_and_WriteResponse()
+  Dim res As Object
+  Dim response As Object
+  
+  Set response = SendPost(8000)
+    
+  For Each res In response
+    Debug.Print res("x")
+    Debug.Print res("y")
+    Debug.Print res("sheet_name")
+    Debug.Print res("value")
+  Next res
+  
+  WriteResponse response  ' INFO: 240721 引数はカッコ無しで渡すこと。(こうすることで、参照渡しが確定する。)
 End Sub
 
 
@@ -45,6 +75,27 @@ Public Function CheckPortAvailable(ByVal port As Long) As Boolean
 End Function
 
 
-Public Sub TEST___CheckPortAvailable()
-  MsgBox CheckPortAvailable(8000)
+Private Sub TEST___CheckPortAvailable()
+  MsgBox CheckPortAvailable(8001)
 End Sub
+
+
+Public Function ObtainMinAvailablePort(ByVal minPort As Long, Optional ByVal maxPort As Long = 65536) As Long
+  '
+  ' 使用できる可能性のある、最小のポート番号を返す。
+  '
+  Dim port As Long
+  For port = minPort To maxPort
+    If CheckPortAvailable(port) = True Then
+      ObtainMinAvailablePort = port
+      Exit For
+    End If
+  Next port
+End Function
+
+
+Private Sub TEST___ObtainMinAvailablePort()
+  Debug.Print ObtainMinAvailablePort(8000)
+End Sub
+
+

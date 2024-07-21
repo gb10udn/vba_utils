@@ -3,11 +3,13 @@ target/
 .venv/
 dist/
 build/
+__pycache__
 
 *.exe
 *.spec
 *.code-workspace
 *.xlsm
+*.ipynb
 
 Sheet1.bas
 ThisWorkbook.bas

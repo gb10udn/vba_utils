@@ -1,66 +1,4 @@
-Attribute VB_Name = "Utils"
-Option Explicit
-
-
-Public Function FilePath_ChangeExtension(ByVal FilePath As String, ByVal newExtension As String) As String
-  '
-  ' 拡張子を変更する関数。例えば、.csv --> .dat で使用する。
-  ' 引数の、newExtension は、ピリオドから入力する。(Ex. ".dat")
-  ' filePath が拡張子を持たない場合は、何もしない。
-  '
-  Dim fso As Object
-  Dim hasExtension As Boolean
-  Dim baseDir As String
-  Dim fileNameWithoutExtension As String
-  
-  Set fso = CreateObject("Scripting.FileSystemObject")
-  
-  hasExtension = fso.GetExtensionName(FilePath) <> ""
-  baseDir = fso.GetParentFolderName(FilePath)
-  fileNameWithoutExtension = fso.GetBaseName(FilePath)
-  
-  If hasExtension = True Then
-    ChangeExtension = baseDir & "\" & fileNameWithoutExtension & newExtension
-  Else
-    ChangeExtension = baseDir & "\" & fileNameWithoutExtension
-  End If
-  
-  Set fso = Nothing
-  
-End Function
-
-
-
-Public Function FilePath_ObtainAbsPath(ByVal arg) As String
-  '
-  ' 絶対パスに変換して返す。なお、絶対パスを渡すとそのまま返す。(os.path.abspath)
-  '
-  Dim fso As Object
-  Set fso = CreateObject("Scripting.FileSystemObject")
-    
-  With CreateObject("WScript.Shell")
-    .CurrentDirectory = ThisWorkbook.Path  ' INFO: 231108 ファイル共有用。(ChDrive, ChDir では不可)
-  End With
-  
-  ObtainAbsPath = fso.GetAbsolutePathName(arg)
-  Set fso = Nothing
-End Function
-
-
-
-
-Public Function FilePath_ObtainFileName(ByVal arg As String) As String
-  '
-  ' ファイルパスの内、ファイル名 (拡張子を含む) を返す関数。(os.path.basename)
-  '
-  Dim fso As Object
-  Set fso = CreateObject("Scripting.FileSystemObject")
-  ObtainFileName = fso.GetFileName(arg)
-  Set fso = Nothing
-End Function
-
-
-
+Attribute VB_Name = "JsonConverter"
 ''
 ' VBA-JSON v2.3.1
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-JSON
@@ -105,6 +43,7 @@ End Function
 ' (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ' SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+Option Explicit
 
 ' === VBA-UTC Headers
 #If Mac Then
@@ -112,25 +51,25 @@ End Function
 #If VBA7 Then
 
 ' 64-bit Mac (2016)
-Private Declare PtrSafe Function JsonConverter_utc_popen Lib "/usr/lib/libc.dylib" Alias "popen" _
+Private Declare PtrSafe Function utc_popen Lib "/usr/lib/libc.dylib" Alias "popen" _
     (ByVal utc_Command As String, ByVal utc_Mode As String) As LongPtr
-Private Declare PtrSafe Function JsonConverter_utc_pclose Lib "/usr/lib/libc.dylib" Alias "pclose" _
+Private Declare PtrSafe Function utc_pclose Lib "/usr/lib/libc.dylib" Alias "pclose" _
     (ByVal utc_File As LongPtr) As LongPtr
-Private Declare PtrSafe Function JsonConverter_utc_fread Lib "/usr/lib/libc.dylib" Alias "fread" _
+Private Declare PtrSafe Function utc_fread Lib "/usr/lib/libc.dylib" Alias "fread" _
     (ByVal utc_Buffer As String, ByVal utc_Size As LongPtr, ByVal utc_Number As LongPtr, ByVal utc_File As LongPtr) As LongPtr
-Private Declare PtrSafe Function JsonConverter_utc_feof Lib "/usr/lib/libc.dylib" Alias "feof" _
+Private Declare PtrSafe Function utc_feof Lib "/usr/lib/libc.dylib" Alias "feof" _
     (ByVal utc_File As LongPtr) As LongPtr
 
 #Else
 
 ' 32-bit Mac
-Private Declare Function JsonConverter_utc_popen Lib "libc.dylib" Alias "popen" _
+Private Declare Function utc_popen Lib "libc.dylib" Alias "popen" _
     (ByVal utc_Command As String, ByVal utc_Mode As String) As Long
-Private Declare Function JsonConverter_utc_pclose Lib "libc.dylib" Alias "pclose" _
+Private Declare Function utc_pclose Lib "libc.dylib" Alias "pclose" _
     (ByVal utc_File As Long) As Long
-Private Declare Function JsonConverter_utc_fread Lib "libc.dylib" Alias "fread" _
+Private Declare Function utc_fread Lib "libc.dylib" Alias "fread" _
     (ByVal utc_Buffer As String, ByVal utc_Size As Long, ByVal utc_Number As Long, ByVal utc_File As Long) As Long
-Private Declare Function JsonConverter_utc_feof Lib "libc.dylib" Alias "feof" _
+Private Declare Function utc_feof Lib "libc.dylib" Alias "feof" _
     (ByVal utc_File As Long) As Long
 
 #End If
@@ -140,20 +79,20 @@ Private Declare Function JsonConverter_utc_feof Lib "libc.dylib" Alias "feof" _
 ' http://msdn.microsoft.com/en-us/library/windows/desktop/ms724421.aspx
 ' http://msdn.microsoft.com/en-us/library/windows/desktop/ms724949.aspx
 ' http://msdn.microsoft.com/en-us/library/windows/desktop/ms725485.aspx
-Private Declare PtrSafe Function JsonConverter_utc_GetTimeZoneInformation Lib "kernel32" Alias "GetTimeZoneInformation" _
+Private Declare PtrSafe Function utc_GetTimeZoneInformation Lib "kernel32" Alias "GetTimeZoneInformation" _
     (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION) As Long
-Private Declare PtrSafe Function JsonConverter_utc_SystemTimeToTzSpecificLocalTime Lib "kernel32" Alias "SystemTimeToTzSpecificLocalTime" _
+Private Declare PtrSafe Function utc_SystemTimeToTzSpecificLocalTime Lib "kernel32" Alias "SystemTimeToTzSpecificLocalTime" _
     (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpUniversalTime As utc_SYSTEMTIME, utc_lpLocalTime As utc_SYSTEMTIME) As Long
-Private Declare PtrSafe Function JsonConverter_utc_TzSpecificLocalTimeToSystemTime Lib "kernel32" Alias "TzSpecificLocalTimeToSystemTime" _
+Private Declare PtrSafe Function utc_TzSpecificLocalTimeToSystemTime Lib "kernel32" Alias "TzSpecificLocalTimeToSystemTime" _
     (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpLocalTime As utc_SYSTEMTIME, utc_lpUniversalTime As utc_SYSTEMTIME) As Long
 
 #Else
 
-Private Declare Function JsonConverter_utc_GetTimeZoneInformation Lib "kernel32" Alias "GetTimeZoneInformation" _
+Private Declare Function utc_GetTimeZoneInformation Lib "kernel32" Alias "GetTimeZoneInformation" _
     (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION) As Long
-Private Declare Function JsonConverter_utc_SystemTimeToTzSpecificLocalTime Lib "kernel32" Alias "SystemTimeToTzSpecificLocalTime" _
+Private Declare Function utc_SystemTimeToTzSpecificLocalTime Lib "kernel32" Alias "SystemTimeToTzSpecificLocalTime" _
     (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpUniversalTime As utc_SYSTEMTIME, utc_lpLocalTime As utc_SYSTEMTIME) As Long
-Private Declare Function JsonConverter_utc_TzSpecificLocalTimeToSystemTime Lib "kernel32" Alias "TzSpecificLocalTimeToSystemTime" _
+Private Declare Function utc_TzSpecificLocalTimeToSystemTime Lib "kernel32" Alias "TzSpecificLocalTimeToSystemTime" _
     (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpLocalTime As utc_SYSTEMTIME, utc_lpUniversalTime As utc_SYSTEMTIME) As Long
 
 #End If
@@ -230,7 +169,7 @@ Public JsonOptions As json_Options
 ' @return {Object} (Dictionary or Collection)
 ' @throws 10001 - JSON parse error
 ''
-Public Function JsonConverter_ParseJson(ByVal JsonString As String) As Object
+Public Function ParseJson(ByVal JsonString As String) As Object
     Dim json_Index As Long
     json_Index = 1
 
@@ -257,7 +196,7 @@ End Function
 ' @param {Integer|String} Whitespace "Pretty" print json with given number of spaces per indentation (Integer) or given string
 ' @return {String}
 ''
-Public Function JsonConverter_ConvertToJson(ByVal JsonValue As Variant, Optional ByVal Whitespace As Variant, Optional ByVal json_CurrentIndentation As Long = 0) As String
+Public Function ConvertToJson(ByVal JsonValue As Variant, Optional ByVal Whitespace As Variant, Optional ByVal json_CurrentIndentation As Long = 0) As String
     Dim json_Buffer As String
     Dim json_BufferPosition As Long
     Dim json_BufferLength As Long
@@ -516,10 +455,10 @@ Public Function JsonConverter_ConvertToJson(ByVal JsonValue As Variant, Optional
 End Function
 
 ' ============================================= '
-' Private Function JsonConverter_s
+' Private Functions
 ' ============================================= '
 
-Private Function JsonConverter_json_ParseObject(json_String As String, ByRef json_Index As Long) As Dictionary
+Private Function json_ParseObject(json_String As String, ByRef json_Index As Long) As Dictionary
     Dim json_Key As String
     Dim json_NextChar As String
 
@@ -534,7 +473,7 @@ Private Function JsonConverter_json_ParseObject(json_String As String, ByRef jso
             json_SkipSpaces json_String, json_Index
             If VBA.Mid$(json_String, json_Index, 1) = "}" Then
                 json_Index = json_Index + 1
-                Exit Function JsonConverter_
+                Exit Function
             ElseIf VBA.Mid$(json_String, json_Index, 1) = "," Then
                 json_Index = json_Index + 1
                 json_SkipSpaces json_String, json_Index
@@ -551,7 +490,7 @@ Private Function JsonConverter_json_ParseObject(json_String As String, ByRef jso
     End If
 End Function
 
-Private Function JsonConverter_json_ParseArray(json_String As String, ByRef json_Index As Long) As Collection
+Private Function json_ParseArray(json_String As String, ByRef json_Index As Long) As Collection
     Set json_ParseArray = New Collection
 
     json_SkipSpaces json_String, json_Index
@@ -564,7 +503,7 @@ Private Function JsonConverter_json_ParseArray(json_String As String, ByRef json
             json_SkipSpaces json_String, json_Index
             If VBA.Mid$(json_String, json_Index, 1) = "]" Then
                 json_Index = json_Index + 1
-                Exit Function JsonConverter_
+                Exit Function
             ElseIf VBA.Mid$(json_String, json_Index, 1) = "," Then
                 json_Index = json_Index + 1
                 json_SkipSpaces json_String, json_Index
@@ -575,7 +514,7 @@ Private Function JsonConverter_json_ParseArray(json_String As String, ByRef json
     End If
 End Function
 
-Private Function JsonConverter_json_ParseValue(json_String As String, ByRef json_Index As Long) As Variant
+Private Function json_ParseValue(json_String As String, ByRef json_Index As Long) As Variant
     json_SkipSpaces json_String, json_Index
     Select Case VBA.Mid$(json_String, json_Index, 1)
     Case "{"
@@ -602,7 +541,7 @@ Private Function JsonConverter_json_ParseValue(json_String As String, ByRef json
     End Select
 End Function
 
-Private Function JsonConverter_json_ParseString(json_String As String, ByRef json_Index As Long) As String
+Private Function json_ParseString(json_String As String, ByRef json_Index As Long) As String
     Dim json_Quote As String
     Dim json_Char As String
     Dim json_Code As String
@@ -654,7 +593,7 @@ Private Function JsonConverter_json_ParseString(json_String As String, ByRef jso
         Case json_Quote
             json_ParseString = json_BufferToString(json_Buffer, json_BufferPosition)
             json_Index = json_Index + 1
-            Exit Function JsonConverter_
+            Exit Function
         Case Else
             json_BufferAppend json_Buffer, json_Char, json_BufferPosition, json_BufferLength
             json_Index = json_Index + 1
@@ -662,7 +601,7 @@ Private Function JsonConverter_json_ParseString(json_String As String, ByRef jso
     Loop
 End Function
 
-Private Function JsonConverter_json_ParseNumber(json_String As String, ByRef json_Index As Long) As Variant
+Private Function json_ParseNumber(json_String As String, ByRef json_Index As Long) As Variant
     Dim json_Char As String
     Dim json_Value As String
     Dim json_IsLargeNumber As Boolean
@@ -690,12 +629,12 @@ Private Function JsonConverter_json_ParseNumber(json_String As String, ByRef jso
                 ' VBA.Val does not use regional settings, so guard for comma is not needed
                 json_ParseNumber = VBA.Val(json_Value)
             End If
-            Exit Function JsonConverter_
+            Exit Function
         End If
     Loop
 End Function
 
-Private Function JsonConverter_json_ParseKey(json_String As String, ByRef json_Index As Long) As String
+Private Function json_ParseKey(json_String As String, ByRef json_Index As Long) As String
     ' Parse key with single or double quotes
     If VBA.Mid$(json_String, json_Index, 1) = """" Or VBA.Mid$(json_String, json_Index, 1) = "'" Then
         json_ParseKey = json_ParseString(json_String, json_Index)
@@ -723,7 +662,7 @@ Private Function JsonConverter_json_ParseKey(json_String As String, ByRef json_I
     End If
 End Function
 
-Private Function JsonConverter_json_IsUndefined(ByVal json_Value As Variant) As Boolean
+Private Function json_IsUndefined(ByVal json_Value As Variant) As Boolean
     ' Empty / Nothing -> undefined
     Select Case VBA.VarType(json_Value)
     Case VBA.vbEmpty
@@ -736,7 +675,7 @@ Private Function JsonConverter_json_IsUndefined(ByVal json_Value As Variant) As 
     End Select
 End Function
 
-Private Function JsonConverter_json_Encode(ByVal json_Text As Variant) As String
+Private Function json_Encode(ByVal json_Text As Variant) As String
     ' Reference: http://www.ietf.org/rfc/rfc4627.txt
     ' Escape: ", \, /, backspace, form feed, line feed, carriage return, tab
     Dim json_Index As Long
@@ -797,20 +736,20 @@ Private Function JsonConverter_json_Encode(ByVal json_Text As Variant) As String
     json_Encode = json_BufferToString(json_Buffer, json_BufferPosition)
 End Function
 
-Private Function JsonConverter_json_Peek(json_String As String, ByVal json_Index As Long, Optional json_NumberOfCharacters As Long = 1) As String
+Private Function json_Peek(json_String As String, ByVal json_Index As Long, Optional json_NumberOfCharacters As Long = 1) As String
     ' "Peek" at the next number of characters without incrementing json_Index (ByVal instead of ByRef)
     json_SkipSpaces json_String, json_Index
     json_Peek = VBA.Mid$(json_String, json_Index, json_NumberOfCharacters)
 End Function
 
-Private Sub JsonConverter_json_SkipSpaces(json_String As String, ByRef json_Index As Long)
+Private Sub json_SkipSpaces(json_String As String, ByRef json_Index As Long)
     ' Increment index to skip over spaces
     Do While json_Index > 0 And json_Index <= VBA.Len(json_String) And VBA.Mid$(json_String, json_Index, 1) = " "
         json_Index = json_Index + 1
     Loop
 End Sub
 
-Private Function JsonConverter_json_StringIsLargeNumber(json_String As Variant) As Boolean
+Private Function json_StringIsLargeNumber(json_String As Variant) As Boolean
     ' Check if the given string is considered a "large number"
     ' (See json_ParseNumber)
 
@@ -832,13 +771,13 @@ Private Function JsonConverter_json_StringIsLargeNumber(json_String As Variant) 
                 ' Continue through characters
             Case Else
                 json_StringIsLargeNumber = False
-                Exit Function JsonConverter_
+                Exit Function
             End Select
         Next json_CharIndex
     End If
 End Function
 
-Private Function JsonConverter_json_ParseErrorMessage(json_String As String, ByRef json_Index As Long, ErrorMessage As String)
+Private Function json_ParseErrorMessage(json_String As String, ByRef json_Index As Long, ErrorMessage As String)
     ' Provide detailed parse error message, including details of where and what occurred
     '
     ' Example:
@@ -866,7 +805,7 @@ Private Function JsonConverter_json_ParseErrorMessage(json_String As String, ByR
                              ErrorMessage
 End Function
 
-Private Sub JsonConverter_json_BufferAppend(ByRef json_Buffer As String, _
+Private Sub json_BufferAppend(ByRef json_Buffer As String, _
                               ByRef json_Append As Variant, _
                               ByRef json_BufferPosition As Long, _
                               ByRef json_BufferLength As Long)
@@ -909,12 +848,12 @@ Private Sub JsonConverter_json_BufferAppend(ByRef json_Buffer As String, _
     End If
 
     ' Note: Namespacing with VBA.Mid$ doesn't work properly here, throwing compile error:
-    ' Function JsonConverter_call on left-hand side of assignment must return Variant or Object
+    ' Function call on left-hand side of assignment must return Variant or Object
     Mid$(json_Buffer, json_BufferPosition + 1, json_AppendLength) = CStr(json_Append)
     json_BufferPosition = json_BufferPosition + json_AppendLength
 End Sub
 
-Private Function JsonConverter_json_BufferToString(ByRef json_Buffer As String, ByVal json_BufferPosition As Long) As String
+Private Function json_BufferToString(ByRef json_Buffer As String, ByVal json_BufferPosition As Long) As String
     If json_BufferPosition > 0 Then
         json_BufferToString = VBA.Left$(json_Buffer, json_BufferPosition)
     End If
@@ -951,7 +890,7 @@ End Function
 ' @return {Date} Local date
 ' @throws 10011 - UTC parsing error
 ''
-Public Function JsonConverter_ParseUtc(utc_UtcDate As Date) As Date
+Public Function ParseUtc(utc_UtcDate As Date) As Date
     On Error GoTo utc_ErrorHandling
 
 #If Mac Then
@@ -966,7 +905,7 @@ Public Function JsonConverter_ParseUtc(utc_UtcDate As Date) As Date
     ParseUtc = utc_SystemTimeToDate(utc_LocalDate)
 #End If
 
-    Exit Function JsonConverter_
+    Exit Function
 
 utc_ErrorHandling:
     Err.Raise 10011, "UtcConverter.ParseUtc", "UTC parsing error: " & Err.Number & " - " & Err.Description
@@ -980,7 +919,7 @@ End Function
 ' @return {Date} UTC date
 ' @throws 10012 - UTC conversion error
 ''
-Public Function JsonConverter_ConvertToUtc(utc_LocalDate As Date) As Date
+Public Function ConvertToUtc(utc_LocalDate As Date) As Date
     On Error GoTo utc_ErrorHandling
 
 #If Mac Then
@@ -995,7 +934,7 @@ Public Function JsonConverter_ConvertToUtc(utc_LocalDate As Date) As Date
     ConvertToUtc = utc_SystemTimeToDate(utc_UtcDate)
 #End If
 
-    Exit Function JsonConverter_
+    Exit Function
 
 utc_ErrorHandling:
     Err.Raise 10012, "UtcConverter.ConvertToUtc", "UTC conversion error: " & Err.Number & " - " & Err.Description
@@ -1009,7 +948,7 @@ End Function
 ' @return {Date} Local date
 ' @throws 10013 - ISO 8601 parsing error
 ''
-Public Function JsonConverter_ParseIso(utc_IsoString As String) As Date
+Public Function ParseIso(utc_IsoString As String) As Date
     On Error GoTo utc_ErrorHandling
 
     Dim utc_Parts() As String
@@ -1073,7 +1012,7 @@ Public Function JsonConverter_ParseIso(utc_IsoString As String) As Date
         End If
     End If
 
-    Exit Function JsonConverter_
+    Exit Function
 
 utc_ErrorHandling:
     Err.Raise 10013, "UtcConverter.ParseIso", "ISO 8601 parsing error for " & utc_IsoString & ": " & Err.Number & " - " & Err.Description
@@ -1087,24 +1026,24 @@ End Function
 ' @return {Date} ISO 8601 string
 ' @throws 10014 - ISO 8601 conversion error
 ''
-Public Function JsonConverter_ConvertToIso(utc_LocalDate As Date) As String
+Public Function ConvertToIso(utc_LocalDate As Date) As String
     On Error GoTo utc_ErrorHandling
 
     ConvertToIso = VBA.Format$(ConvertToUtc(utc_LocalDate), "yyyy-mm-ddTHH:mm:ss.000Z")
 
-    Exit Function JsonConverter_
+    Exit Function
 
 utc_ErrorHandling:
     Err.Raise 10014, "UtcConverter.ConvertToIso", "ISO 8601 conversion error: " & Err.Number & " - " & Err.Description
 End Function
 
 ' ============================================= '
-' Private Function JsonConverter_s
+' Private Functions
 ' ============================================= '
 
 #If Mac Then
 
-Private Function JsonConverter_utc_ConvertDate(utc_Value As Date, Optional utc_ConvertToUtc As Boolean = False) As Date
+Private Function utc_ConvertDate(utc_Value As Date, Optional utc_ConvertToUtc As Boolean = False) As Date
     Dim utc_ShellCommand As String
     Dim utc_Result As utc_ShellResult
     Dim utc_Parts() As String
@@ -1135,7 +1074,7 @@ Private Function JsonConverter_utc_ConvertDate(utc_Value As Date, Optional utc_C
     End If
 End Function
 
-Private Function JsonConverter_utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResult
+Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResult
 #If VBA7 Then
     Dim utc_File As LongPtr
     Dim utc_Read As LongPtr
@@ -1149,7 +1088,7 @@ Private Function JsonConverter_utc_ExecuteInShell(utc_ShellCommand As String) As
     On Error GoTo utc_ErrorHandling
     utc_File = utc_popen(utc_ShellCommand, "r")
 
-    If utc_File = 0 Then: Exit Function JsonConverter_
+    If utc_File = 0 Then: Exit Function
 
     Do While utc_feof(utc_File) = 0
         utc_Chunk = VBA.Space$(50)
@@ -1166,7 +1105,7 @@ End Function
 
 #Else
 
-Private Function JsonConverter_utc_DateToSystemTime(utc_Value As Date) As utc_SYSTEMTIME
+Private Function utc_DateToSystemTime(utc_Value As Date) As utc_SYSTEMTIME
     utc_DateToSystemTime.utc_wYear = VBA.Year(utc_Value)
     utc_DateToSystemTime.utc_wMonth = VBA.Month(utc_Value)
     utc_DateToSystemTime.utc_wDay = VBA.Day(utc_Value)
@@ -1176,166 +1115,10 @@ Private Function JsonConverter_utc_DateToSystemTime(utc_Value As Date) As utc_SY
     utc_DateToSystemTime.utc_wMilliseconds = 0
 End Function
 
-Private Function JsonConverter_utc_SystemTimeToDate(utc_Value As utc_SYSTEMTIME) As Date
+Private Function utc_SystemTimeToDate(utc_Value As utc_SYSTEMTIME) As Date
     utc_SystemTimeToDate = DateSerial(utc_Value.utc_wYear, utc_Value.utc_wMonth, utc_Value.utc_wDay) + _
         TimeSerial(utc_Value.utc_wHour, utc_Value.utc_wMinute, utc_Value.utc_wSecond)
 End Function
 
 #End If
-
-
-
-
-Public Function Network_SendPost(ByVal port As Long, Optional ByVal postData As String = "{}") As Object
-  '
-  ' Ex. postData = "{""a"": 1, ""b"": 2}" のように、ダブルクォーテーションが２ついる点に注意せよ。
-  '
-  Dim url As String
-  Dim xmlhttp As Object
-  Dim response As Variant
-  
-  Set xmlhttp = CreateObject("MSXML2.XMLHTTP")
-  url = "http://127.0.0.1:" & port & "/"
-  xmlhttp.Open "POST", url, False
-  xmlhttp.setRequestHeader "Content-Type", "application/json"
-  xmlhttp.send postData
-
-  response = xmlhttp.responseText
-  Set SendPost = JsonConverter.ParseJson(response)
-  Set xmlhttp = Nothing
-End Function
-
-
-Public Function Network_WriteResponse(ByRef response As Object)
-  '
-  ' 受け取ったレスポンスから、エクセルシートに値を書き込む。
-  '
-  Dim res As Variant
-  For Each res In response
-    If res("sheet_name") = "" Then
-      Cells(res("x"), res("y")).value = res("value")
-    Else
-      ThisWorkbook.Sheets(res("sheet_name")).Cells(res("x"), res("y")).value = res("value")
-    End If
-  Next res
-  Set response = Nothing
-End Function
-
-
-
-
-Public Function Network_CheckPortAvailable(ByVal port As Long) As Boolean
-  '
-  ' 127.0.0.1 (localhost) のポートが使える可能性があるか (他のプロセスが使っていないか) どうか。
-  ' 使える可能性がある場合は True を返す。
-  '
-  Dim stdout As String
-  Dim cmd As String
-  
-  cmd = "cmd /c netstat -an | find ""127.0.0.1:" & port & """"
-  stdout = RunSyncCommandAndCatchStdout(cmd)  ' # TODO: 240721 Utils.bas にまとめた場合に、うまく動かない可能性があるので修正せよ。
-  
-  If InStr(stdout, "127.0.0.1:" & port) > 0 Then
-    CheckPortAvailable = False
-  Else
-    CheckPortAvailable = True
-  End If
-
-End Function
-
-
-
-
-Public Function Network_ObtainMinAvailablePort(ByVal minPort As Long, Optional ByVal maxPort As Long = 65536) As Long
-  '
-  ' 使用できる可能性のある、最小のポート番号を返す。
-  '
-  Dim port As Long
-  For port = minPort To maxPort
-    If CheckPortAvailable(port) = True Then
-      ObtainMinAvailablePort = port
-      Exit For
-    End If
-  Next port
-End Function
-
-
-
-
-
-
-
-
-
-
-
-Public Function command_RunSyncCommandAndCatchStdout(ByVal cmd As String) As String  ' # TODO: 240127 timeout / isHidden を実装する。
-  '
-  ' 同期的にコマンドを実行し、その標準出力を受け取る関数。
-  ' (外部ファイル (Ex. exe, cmd, bat etc...) の実行等を想定。)
-  '
-  ' Parameters
-  ' ----------
-  ' cmd : String
-  '   実行するコマンド。
-  '
-  ' Return
-  ' ------
-  ' result : String
-  '   取得した標準出力。
-  '
-  Dim wshShell As Object
-  Dim wshShellExec As Object
-  Dim wshShellStdout As Object
-  Dim result As String
-  
-  Set wshShell = VBA.CreateObject("WScript.Shell")
-  wshShell.CurrentDirectory = ThisWorkbook.Path  ' # FIXME: 240125 OneDrive 上で動かない懸念有り。
-  Set wshShellExec = wshShell.Exec(cmd)          ' INFO: 240125 .Exec() は標準出力を受け取り可能。(https://www.bugbugnow.net/2018/06/wshrunexec.html)
-  Set wshShellStdout = wshShellExec.stdout
-  
-  ' [START] run and catch stdout
-  result = wshShellStdout.ReadAll
-  Do While wshShellExec.Status = 0  ' # HACK: 240125 エラー時の対応を書く。
-    VBA.DoEvents
-  Loop
-  ' [END] run and catch stdout
-  
-  ' [START] post process
-  wshShellStdout.Close
-  Set wshShell = Nothing
-  Set wshShellExec = Nothing
-  Set wshShellStdout = Nothing
-  ' [END] post process
-  
-  RunSyncCommandAndCatchStdout = result
-End Function
-
-
-
-
-Public Sub command_RunAsyncCommandAndCatchStdout(ByVal cmd As String, Optional ByVal isHidden As Boolean = True)
-  '
-  ' 非同期的にコマンドを実行する関数。(標準出力を受け取らない。)
-  ' (外部ファイル (Ex. exe, cmd, bat etc...) の実行等を想定。)
-  '
-  ' Parameters
-  ' ----------
-  ' cmd : String
-  '   実行するコマンド。
-  '
-  Dim wshShell As Object
-
-  Set wshShell = CreateObject("WScript.Shell")
-  wshShell.CurrentDirectory = ThisWorkbook.Path  ' # FIXME: 240128 OneDrive 上で動かない懸念有り。
-  
-  If isHidden Then
-    wshShell.Run cmd, vbHide, False   ' INFO: 第三引数 --> 同期する (True) or しない (False)。非同期処理のプロシージャなので、False とした。
-  Else
-    wshShell.Run cmd, vbNormalFocus, False
-  End If
-  Set wshShell = Nothing
-End Sub
-
-
 
