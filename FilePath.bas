@@ -1,6 +1,7 @@
 Attribute VB_Name = "FilePath"
 Option Explicit
 
+
 Public Function ChangeExtension(ByVal FilePath As String, ByVal newExtension As String) As String
   '
   ' 拡張子を変更する関数。例えば、.csv --> .dat で使用する。

@@ -2,7 +2,7 @@ Attribute VB_Name = "Command"
 Option Explicit
 
 
-Public Function RunSyncCommandAndCatchStdout(ByVal cmd As String) As String  ' TODO: 240127 timeout / isHidden を実装する。
+Public Function RunSyncCommandAndCatchStdout(ByVal cmd As String) As String  ' # TODO: 240127 timeout / isHidden を実装する。
   '
   ' 同期的にコマンドを実行し、その標準出力を受け取る関数。
   ' (外部ファイル (Ex. exe, cmd, bat etc...) の実行等を想定。)
@@ -23,13 +23,13 @@ Public Function RunSyncCommandAndCatchStdout(ByVal cmd As String) As String  ' T
   Dim result As String
   
   Set wshShell = VBA.CreateObject("WScript.Shell")
-  wshShell.CurrentDirectory = ThisWorkbook.Path  ' FIXME: 240125 OneDrive 上で動かない懸念有り。
+  wshShell.CurrentDirectory = ThisWorkbook.Path  ' # FIXME: 240125 OneDrive 上で動かない懸念有り。
   Set wshShellExec = wshShell.Exec(cmd)          ' INFO: 240125 .Exec() は標準出力を受け取り可能。(https://www.bugbugnow.net/2018/06/wshrunexec.html)
   Set wshShellStdout = wshShellExec.stdout
   
   ' [START] run and catch stdout
   result = wshShellStdout.ReadAll
-  Do While wshShellExec.Status = 0  ' HACK: 240125 エラー時の対応を書く。
+  Do While wshShellExec.Status = 0  ' # HACK: 240125 エラー時の対応を書く。
     VBA.DoEvents
   Loop
   ' [END] run and catch stdout
@@ -71,7 +71,7 @@ Public Sub RunAsyncCommandAndCatchStdout(ByVal cmd As String, Optional ByVal isH
   Dim wshShell As Object
 
   Set wshShell = CreateObject("WScript.Shell")
-  wshShell.CurrentDirectory = ThisWorkbook.Path  ' FIXME: 240128 OneDrive 上で動かない懸念有り。
+  wshShell.CurrentDirectory = ThisWorkbook.Path  ' # FIXME: 240128 OneDrive 上で動かない懸念有り。
   
   If isHidden Then
     wshShell.Run cmd, vbHide, False   ' INFO: 第三引数 --> 同期する (True) or しない (False)。非同期処理のプロシージャなので、False とした。
