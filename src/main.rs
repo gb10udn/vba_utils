@@ -1,11 +1,20 @@
+mod validation;
+
 use calamine::{Reader, open_workbook, Xlsx};
 use std::{fs::File, io::Write, io};
 use regex::Regex;
 
 fn main() {
     let path = "./vba_utils.xlsm";
+    let duplicated_procedure_names = validation::validate_no_duplicated_procedure_names(path);
+    println!("{:?}", duplicated_procedure_names);
+
+    if duplicated_procedure_names.len() > 0 {
+        panic!("DuplicateProcedureNameError ... -> {:?}", duplicated_procedure_names);
+    }
+
     write_each_code(path);
-    write_summary_code(path, "Utils", true, true);
+    write_summary_code(path, "Utils", true, true);  // TODO: 240722 with_module_name ... は紛らわしいので、削除を検討せよ。
     stop();
 }
 
